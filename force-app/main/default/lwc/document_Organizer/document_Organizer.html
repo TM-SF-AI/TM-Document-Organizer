@@ -1,0 +1,460 @@
+<template>
+	<lightning-card variant="slds-icon-inverse" title="Documents Organizer " icon-name="standard:file">
+
+		<div class="slds-col slds-size_2-of-9 slds-box_x-small slds-text-align_center slds-m-around_x-small">
+			<lightning-input label="Search key" type="search" value={SearchKey} placeholder="Search..."
+				variant="label-hidden" onchange={handleSearchKeyChange}></lightning-input>
+		</div>
+		<lightning-tabset variant="scoped" active-tab-value={activetabContent}>
+			<template if:true={isSpiner}>
+				<lightning-spinner alternative-text="Loading"></lightning-spinner>
+			</template>
+			<lightning-tab label="All" value="All" onactive={tabChangeHandler}>
+
+				<div class="">
+
+					<div class="slds-m-around_medium slds-size_2-of-9">
+						<lightning-combobox label="Select Options" value={defaultTypeOptions} options={typeOptions}
+							onchange={handleAllFileTypeChange}>
+						</lightning-combobox>
+
+					</div>
+
+					<!-- Email File -->
+					<div if:true={selectEmailPicklist} class="slds-scrollable ">
+						<table if:true={showAllEmailList}
+							class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered "
+							aria-labelledby="element-with-table-label other-element-with-table-label">
+							<thead>
+								<tr class="slds-line-height_reset ">
+									<th class="" scope="col" style="width:5px">
+										<lightning-input class="indexClassAttachment" data-object="AllRecord"
+											type="checkbox" onchange={selectAllCheckbox}></lightning-input>
+									</th>
+									<th class="" scope="col">
+										<a data-id="Type" onclick={sort}>
+											<div class="slds-truncate" title="Type">Type</div>
+										</a>
+									</th>
+									<th class="" scope="col">
+										<a data-id="Name" onclick={sort}>
+											<div class="slds-truncate" title="Name">Name</div>
+										</a>
+									</th>
+									<th class="" scope="col">
+										<a data-id="Name" onclick={sort}>
+											<div class="slds-truncate" title="Size">Size</div>
+										</a>
+									</th>
+									<th>
+										<div class="slds-truncate" title="download">download</div>
+									</th>
+									<th>
+										<div class="slds-truncate" title="Delete">Delete</div>
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+
+								<template for:each={recordFiles} for:item="List" for:index="index">
+
+									<tr key={List} class="slds-hint-parent">
+										<td data-label="Name">
+											<lightning-input type="checkbox" data-object="AllRecord" name={index}
+												checked={List.checkbox} onchange={checkboxchange}></lightning-input>
+										</td>
+										<td data-label="Type">
+											<div class="slds-truncate" title={List.FileType}>
+
+												<lightning-icon lwc:if={List.isZip} icon-name='doctype:zip'
+													alternative-text='zip' size='small' title='zip'></lightning-icon>
+												<lightning-icon lwc:elseif={List.isWord} icon-name='doctype:word'
+													alternative-text='word' size='small' title='word'></lightning-icon>
+												<lightning-icon lwc:elseif={List.isExcel} icon-name='doctype:excel'
+													alternative-text='excel' size='small' title='excel'>
+												</lightning-icon>
+												<lightning-icon lwc:elseif={List.isPpt} icon-name='doctype:ppt'
+													alternative-text='ppt' size='small' title='ppt'></lightning-icon>
+												<lightning-icon lwc:elseif={List.isText}
+													icon-name='standard:display_text' alternative-text='display_text'
+													size='small' title='display_text'>
+												</lightning-icon>
+												<lightning-icon lwc:elseif={List.isImage} icon-name='doctype:image'
+													alternative-text='image' size='small' title='image'>
+												</lightning-icon>
+												<lightning-icon lwc:elseif={List.isPdf} icon-name='doctype:pdf'
+													alternative-text='pdf' size='small' title='pdf'></lightning-icon>
+												<lightning-icon lwc:else icon-name='doctype:attachment'
+													alternative-text='attachment' size='small' title='attachment'>
+												</lightning-icon>
+											</div>
+										</td>
+										<td data-label="Name" class="slds-cell-wrap">
+											<div class="slds-line-clamp" title={List.Title}><a onclick={previewHandler}
+													data-id={List.cdId}>{List.Title}</a></div>
+										</td>
+										<td data-label="Size">
+											<div class="slds-truncate" title={List.ContentSize}>{List.ContentSize}</div>
+										</td>
+										<td class="slds-text-align_center">
+											<lightning-icon icon-name='action:download' alternative-text='download'
+												size='x-small' title='download'></lightning-icon>
+										</td>
+										<td class="slds-text-align_center">
+											<lightning-icon icon-name='action:delete' alternative-text='delete'
+												size='x-small' title='delete' onclick={handleDeleteFile}>
+											</lightning-icon>
+										</td>
+									</tr>
+								</template>
+
+							</tbody>
+						</table>
+
+						<template if:false={showAllEmailList}>
+							<div style="display: flex;justify-content: center;height: 5rem;align-items: center;">
+								No Attachment Found.
+							</div>
+						</template>
+
+					</div>
+
+					<!-- Attachment File-->
+					<div if:false={slectDocPicklist} class="slds-scrollable ">
+						<table if:true={showAllList}
+							class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered "
+							aria-labelledby="element-with-table-label other-element-with-table-label">
+							<thead>
+								<tr class="slds-line-height_reset ">
+									<th class="" scope="col" style="width:5px">
+										<lightning-input class="indexClassAttachment" data-object="AllRecord"
+											type="checkbox" onchange={selectAllCheckbox}></lightning-input>
+									</th>
+									<th class="" scope="col">
+										<a data-id="Type" onclick={sort}>
+											<div class="slds-truncate" title="Type">Type</div>
+										</a>
+									</th>
+									<th class="" scope="col">
+										<a data-id="Name" onclick={sort}>
+											<div class="slds-truncate" title="Name">Name</div>
+										</a>
+									</th>
+									<th class="" scope="col">
+										<a data-id="Name" onclick={sort}>
+											<div class="slds-truncate" title="Size">Size</div>
+										</a>
+									</th>
+									<th>
+										<div class="slds-truncate" title="download">download</div>
+									</th>
+									<th>
+										<div class="slds-truncate" title="Delete">Delete</div>
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+
+								<template for:each={recordFiles} for:item="List" for:index="index">
+
+									<tr key={List} class="slds-hint-parent">
+										<td data-label="Name">
+											<lightning-input type="checkbox" data-object="AllRecord" name={index}
+												checked={List.checkbox} onchange={checkboxchange}></lightning-input>
+										</td>
+										<td data-label="Type">
+											<div class="slds-truncate" title={List.FileType}>
+
+												<lightning-icon lwc:if={List.isZip} icon-name='doctype:zip'
+													alternative-text='zip' size='small' title='zip'></lightning-icon>
+												<lightning-icon lwc:elseif={List.isWord} icon-name='doctype:word'
+													alternative-text='word' size='small' title='word'></lightning-icon>
+												<lightning-icon lwc:elseif={List.isExcel} icon-name='doctype:excel'
+													alternative-text='excel' size='small' title='excel'>
+												</lightning-icon>
+												<lightning-icon lwc:elseif={List.isPpt} icon-name='doctype:ppt'
+													alternative-text='ppt' size='small' title='ppt'></lightning-icon>
+												<lightning-icon lwc:elseif={List.isText}
+													icon-name='standard:display_text' alternative-text='display_text'
+													size='small' title='display_text'>
+												</lightning-icon>
+												<lightning-icon lwc:elseif={List.isImage} icon-name='doctype:image'
+													alternative-text='image' size='small' title='image'>
+												</lightning-icon>
+												<lightning-icon lwc:elseif={List.isPdf} icon-name='doctype:pdf'
+													alternative-text='pdf' size='small' title='pdf'></lightning-icon>
+												<lightning-icon lwc:else icon-name='doctype:attachment'
+													alternative-text='attachment' size='small' title='attachment'>
+												</lightning-icon>
+											</div>
+										</td>
+										<td data-label="Name" class="slds-cell-wrap">
+											<div class="slds-line-clamp" title={List.Title}><a onclick={previewHandler}
+													data-id={List.cdId}>{List.Title}</a></div>
+										</td>
+										<td data-label="Size">
+											<div class="slds-truncate" title={List.ContentSize}>{List.ContentSize}</div>
+										</td>
+										<td class="slds-text-align_center">
+											<lightning-icon icon-name='action:download' alternative-text='download'
+												size='x-small' title='download'></lightning-icon>
+										</td>
+										<td class="slds-text-align_center">
+											<lightning-icon icon-name='action:delete' alternative-text='delete'
+												size='x-small' title='delete' onclick={handleDeleteFile}>
+											</lightning-icon>
+										</td>
+									</tr>
+								</template>
+
+							</tbody>
+						</table>
+
+						<template if:false={showAllList}>
+							<div style="display: flex;justify-content: center;height: 5rem;align-items: center;">
+								No Attachment Found.
+							</div>
+						</template>
+					</div>
+				</div>
+			</lightning-tab>
+
+			<lightning-tab label="Images" onactive={tabChangeHandler} value="Images">
+				<div class="sldsslds-scrollable ">
+					<div class="slds-m-around_medium slds-size_2-of-9">
+						<lightning-combobox label="Select Options" value={defaultImgTypeOptions}
+							options={typeImgOptions} onchange={handleImgTypeChange}>
+						</lightning-combobox>
+
+					</div>
+					<!-- Email Image File -->
+					<div if:true={selectImagEmPicklist} class="slds-scrollable ">
+						<table>
+
+							<template if:false={showAllEmailList}>
+								<div style="display: flex;justify-content: center;height: 5rem;align-items: center;">
+									No Image Found.
+								</div>
+							</template>
+						</table>
+					</div>
+					<!-- Attachment Image File -->
+					<div if:false={slectImagDocPicklist} class="slds-scrollable ">
+						<table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered"
+							aria-labelledby="element-with-table-label other-element-with-table-label"
+							if:true={showImages}>
+							<thead>
+								<tr class="slds-line-height_reset">
+									<th class="" scope="col" style="width:15px">
+										<lightning-input class="indexClassFile" data-object="file" type="checkbox"
+											onchange={selectAllCheckbox}>
+										</lightning-input>
+									</th>
+									<th class="" scope="col">
+										<a data-id="Name" onclick={sort}>
+											<div class="slds-truncate" title="Type">Type</div>
+										</a>
+									</th>
+									<th class="" scope="col">
+										<a data-id="Type" onclick={sort}>
+											<div class="slds-truncate" title="Name">Name</div>
+										</a>
+									</th>
+									<th class="" scope="col">
+										<div class="slds-truncate" title="Size">Size</div>
+									</th>
+									<th>
+										<div class="slds-truncate" title="download">download</div>
+									</th>
+									<th>
+										<div class="slds-truncate" title="Delete">Delete</div>
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<template for:each={recordImageFiles} for:item="Image" for:index="index">
+
+									<tr key={Image} class="slds-hint-parent ">
+										<td data-label="Name">
+											<lightning-input type="checkbox" data-object="Image" name={index}
+												checked={Image.checkbox} onchange={checkboxchange}></lightning-input>
+										</td>
+										<td data-label="FileType">
+											<div class="slds-truncate" title={Image.FileType}>{Image.FileType}</div>
+										</td>
+										<td data-label="Name">
+											<div class="slds-truncate" title={Image.Title}><a onclick={previewHandler}
+													data-id={List.cdId}>{Image.Title}</a></div>
+										</td>
+										<td data-label="Size">
+											<div class="slds-truncate" title={Image.ContentSize}>{Image.ContentSize}
+											</div>
+										</td>
+										<td class="slds-text-align_center">
+											<lightning-icon icon-name='action:download' alternative-text='download'
+												size='x-small' title='download'></lightning-icon>
+										</td>
+										<td class="slds-text-align_center">
+											<lightning-icon icon-name='action:delete' alternative-text='delete'
+												size='x-small' title='delete' onclick={handleDeleteFile}>
+											</lightning-icon>
+										</td>
+									</tr>
+								</template>
+
+							</tbody>
+						</table>
+
+						<template if:false={showImages}>
+							<div style="display: flex;justify-content: center;height: 5rem;align-items: center;">
+								No Image Found.
+							</div>
+						</template>
+					</div>
+				</div>
+			</lightning-tab>
+			<lightning-tab label="Documents " onactive={tabChangeHandler} value="Documents ">
+
+				<div class="sldsslds-scrollable ">
+
+					<div class="slds-m-around_medium slds-size_2-of-9">
+						<lightning-combobox label="Select Options" value={defaultDocTypeOptions}
+							options={typeDoceOptions} onchange={handleDocTypeChange}>
+						</lightning-combobox>
+
+					</div>
+					<!-- Document Upload File -->
+					<div if:true={selectEmDocpicklist} class="slds-scrollable ">
+						<table>
+						</table>
+						<template if:false={showAllDocumentList}>
+							<div style="display: flex;justify-content: center;height: 5rem;align-items: center;">
+								No Document found.
+							</div>
+						</template>
+					</div>
+					<!-- Document Upload File -->
+					<div if:false={selectFileDocpicklist} class="slds-scrollable ">
+						<table if:true={showDocuments}
+							class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered"
+							aria-labelledby="element-with-table-label other-element-with-table-label">
+							<thead>
+								<tr class="slds-line-height_reset">
+									<th class="" scope="col" style="width:15px">
+										<lightning-input class="indexClassFile" data-object="file" type="checkbox"
+											onchange={selectAllCheckbox}>
+										</lightning-input>
+									</th>
+									<th class="" scope="col">
+										<a data-id="Type" onclick={sort}>
+											<div class="slds-truncate" title="Type">Type</div>
+										</a>
+									</th>
+									<th class="" scope="col">
+										<a data-id="Name" onclick={sort}>
+											<div class="slds-truncate" title="Name">Name</div>
+										</a>
+									</th>
+									<th class="" scope="col">
+										<div class="slds-truncate" title="Size">Size</div>
+									</th>
+									<th>
+										<div class="slds-truncate" title="download">download</div>
+									</th>
+									<th>
+										<div class="slds-truncate" title="Delete">Delete</div>
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<template for:each={recordDocumentFiles} for:item="Document" for:index="index">
+
+									<tr key={Document} class="slds-hint-parent ">
+										<td data-label="Name">
+											<lightning-input type="checkbox" data-object="Documents" name={index}
+												checked={Document.checkbox} onchange={checkboxchange}></lightning-input>
+										</td>
+										<td data-label="Type">
+											<div class="slds-truncate" title={Document.FileType}>
+
+												<lightning-icon lwc:if={Document.isZip} icon-name='doctype:zip'
+													alternative-text='zip' size='small' title='zip'></lightning-icon>
+												<lightning-icon lwc:elseif={Document.isWord} icon-name='doctype:word'
+													alternative-text='word' size='small' title='word'></lightning-icon>
+												<lightning-icon lwc:elseif={Document.isExcel} icon-name='doctype:excel'
+													alternative-text='excel' size='small' title='excel'>
+												</lightning-icon>
+												<lightning-icon lwc:elseif={Document.isPpt} icon-name='doctype:ppt'
+													alternative-text='ppt' size='small' title='ppt'></lightning-icon>
+												<lightning-icon lwc:elseif={Document.isText}
+													icon-name='standard:display_text' alternative-text='display_text'
+													size='small' title='display_text'>
+												</lightning-icon>
+												<lightning-icon lwc:elseif={Document.isImage} icon-name='doctype:image'
+													alternative-text='image' size='small' title='image'>
+												</lightning-icon>
+												<lightning-icon lwc:elseif={Document.isPdf} icon-name='doctype:pdf'
+													alternative-text='pdf' size='small' title='pdf'></lightning-icon>
+												<lightning-icon lwc:else icon-name='doctype:attachment'
+													alternative-text='attachment' size='small' title='attachment'>
+												</lightning-icon>
+											</div>
+										</td>
+										<td data-label="Name">
+											<div class="slds-truncate" title={Document.Title}><a
+													onclick={previewHandler}
+													data-id={Document.cdId}>{Document.Title}</a></div>
+										</td>
+										<td data-label="Size">
+											<div class="slds-truncate" title={Document.ContentSize}>
+												{Document.ContentSize}
+											</div>
+										</td>
+										<td class="slds-text-align_center">
+											<lightning-icon icon-name='action:download' alternative-text='download'
+												size='x-small' title='download'></lightning-icon>
+										</td>
+										<td class="slds-text-align_center">
+											<lightning-icon icon-name='action:delete' alternative-text='delete'
+												size='x-small' title='delete' onclick={handleDeleteFile}>
+											</lightning-icon>
+										</td>
+									</tr>
+								</template>
+
+							</tbody>
+						</table>
+
+						<template if:false={showDocuments}>
+							<div style="display: flex;justify-content: center;height: 5rem;align-items: center;">
+								No Document found.
+							</div>
+						</template>
+					</div>
+				</div>
+			</lightning-tab>
+
+			<div class="slds-grid slds-gutters slds-m-top_x-large slds-m-bottom_small">
+
+				<div class="slds-col slds-align_absolute-center">
+					<lightning-button variant="brand" label="Download" title="Download action" disabled={Buttontrue}
+						onclick={handleDownloadFile} icon-name="utility:download" icon-position="right"
+						class="slds-m-left_x-small"></lightning-button>
+
+					<!-- Destructive variant: Identifies a potentially negative action -->
+					<lightning-button variant="destructive" label="Delete" title="Delete action" disabled={Buttontrue}
+						icon-name="utility:delete" onclick={handleDeleteFile} icon-position="right"
+						class="slds-m-left_x-small">
+					</lightning-button>
+				</div>
+
+			</div>
+
+		</lightning-tabset>
+		<p slot="footer">
+			<lightning-file-upload name="fileUploader" record-id={recordId} onuploadfinished={handleUploadFinished}
+				multiple>
+			</lightning-file-upload>
+		</p>
+	</lightning-card>
+</template>

@@ -1,0 +1,3 @@
+<apex:page action="{!OAUthProcessing}" controller="ISV_OAuthCallback" showHeader="false" sidebar="false">
+    Processing...........
+</apex:page>

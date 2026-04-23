@@ -1,0 +1,345 @@
+<aura:component controller="DocumentsOrganizerController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    <aura:attribute name="recordId" type="Id" description="This attribute will store the record Ids"/>
+    <aura:attribute name="fileList" type="Object" description="This attribute will get the ContentDocument list from apex controller"/>
+    <aura:attribute name="searchKeyword" type="String" default="" description="This attribute will get the value of input keyword"/>
+    <aura:attribute name="arrowDirection" type="string" default="asc" description="This attribute will the ordertype parameter for sorting"/>
+    <aura:attribute name="selectedTabsoft" type="string" default="Title" description="This attribute will get the sortfield parameter for sorting"/>
+    <aura:attribute name="allFiles" type="List" description="This attribute will display all the files of ContentDocument"/>
+    <aura:attribute name="imageData" type="List" description="This attribute will display all the images of ContentDocument"/>
+    <aura:attribute name="filesData" type="List" description="This attribute will display document(pdf,excel,text,zip,word etc) files"/>
+    <aura:attribute name="allAttachment" type="List" description="This attribute will display document(pdf,excel,text,zip,word etc) files"/>
+    <aura:attribute name="allEmailImages" type="List" description="This attribute will display all the received attachment images of ContentDocument"/>
+    <aura:attribute name="allEmailDocuments" type="List" description="This attribute will display all the received attachment documents of ContentDocument"/>
+    <aura:attribute name="TotalFilesAndAttachment" type="Integer"/>
+    
+    <ltng:require styles="/resource/SLDS"/>
+    
+     <aura:handler name='init' value='{!this}' action='{!c.doInit}'/> 
+    
+    <div class="slds-box slds-theme_default"> 
+        <div class="slds-media">
+            <div class="slds-media__figure">
+                <lightning:icon iconName="standard:file" size="small" variant="slds-icon-inverse"></lightning:icon>
+            </div>
+            <div class="slds-media__body">
+                <div class="slds-page-header__title slds-text-heading_small">Documents Organizer ({!v.TotalFilesAndAttachment})</div>
+            </div>
+        </div>
+        <div class="search-files">
+            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_left">
+                <lightning:icon class="slds-icon slds-input__icon slds-input__icon_left slds-icon-text-default" 
+                                iconName="utility:search" size="x-small" />
+                <lightning:input aura:id="searchBox" placeholder="Search" 
+                                 onkeyup="{!c.Search}" type="text" variant="label-hidden" />
+            </div>
+        </div>
+        
+        <div class="sort-files">
+            <th >
+                <span title="Sort By"> SORT BY : &nbsp;&nbsp;&nbsp;</span>
+            </th>	
+            <td class="hand-cursor" scope="col" onclick="{!c.sortByTitle}">
+                <span class="{!v.selectedTabsoft == 'Title' ? 'slds-truncate bold-font' : 'slds-truncate'}" >&nbsp;Name</span>
+                <lightning:icon class="{!v.selectedTabsoft == 'Title' ? '' : 'hide-arrow'}" iconName="{! and(v.arrowDirection == 'desc', v.selectedTabsoft == 'Title') ? 'utility:arrowdown' : 'utility:arrowup'}" size="xx-small" variant="slds-icon-inverse"></lightning:icon>&nbsp;    
+            </td>
+            <td class="hand-cursor" scope="col" onclick="{!c.sortByDate}">
+                <span class="{!v.selectedTabsoft == 'CreatedDate' ? 'slds-truncate bold-font' : 'slds-truncate'}" >&nbsp;Date</span>
+                <lightning:icon class="{!v.selectedTabsoft == 'CreatedDate' ? '' : 'hide-arrow'}" iconName="{! and(v.arrowDirection == 'desc', v.selectedTabsoft == 'CreatedDate') ? 'utility:arrowdown' : 'utility:arrowup'}" size="xx-small" variant="slds-icon-inverse"></lightning:icon>&nbsp;             
+            </td>
+            <td class="hand-cursor" scope="col" onclick="{!c.sortBySize}">
+                <span class="{!v.selectedTabsoft == 'ContentSize' ? 'slds-truncate bold-font' : 'slds-truncate'}" >&nbsp;Size</span>
+                <lightning:icon class="{!v.selectedTabsoft == 'ContentSize' ? '' : 'hide-arrow'}" iconName="{! and(v.arrowDirection == 'desc', v.selectedTabsoft == 'ContentSize') ? 'utility:arrowdown' : 'utility:arrowup'}" size="xx-small" variant="slds-icon-inverse"></lightning:icon>&nbsp;
+            </td>
+            <td class="hand-cursor" scope="col" onclick="{!c.sortByType}">
+                <span class="{!v.selectedTabsoft == 'FileType' ? 'slds-truncate bold-font' : 'slds-truncate'}" >&nbsp;Type</span>
+                <lightning:icon class="{!v.selectedTabsoft == 'FileType' ? '' : 'hide-arrow'}" iconName="{! and(v.arrowDirection == 'desc', v.selectedTabsoft == 'FileType') ? 'utility:arrowdown' : 'utility:arrowup'}" size="xx-small" variant="slds-icon-inverse"></lightning:icon>&nbsp;
+            </td>
+        </div>
+        <div class="tabsetdiv">
+            <lightning:tabset variant="scoped">
+                <div class="slds-scrollable">
+                    <lightning:tab  label="All">
+                        <h1><b>All Email Attachments:</b></h1>
+                        <br/>
+                        <aura:if isTrue="{!empty(v.fileList.allAttachment)}">
+                            <h2 class="slds-align_absolute-center"> No Attachment Found</h2>
+                        </aura:if>
+                        <aura:iteration items="{!v.fileList.allAttachment}" var="d">
+                            <div class="slds-media all-icons  ">
+                                <div class="slds-media__figure ">
+                                    <aura:if isTrue="{! d.FileType == 'JPEG' || d.FileType == 'JPG' || d.FileType == 'PNG' || d.FileType == 'GIF' || d.FileType == 'BMP'}">
+                                        <lightning:icon iconName="doctype:image" size="medium" />
+                                        <aura:set attribute="else">
+                                            <aura:if isTrue="{! d.FileType == 'PDF'}">
+                                                <lightning:icon iconName="doctype:pdf" size="medium" />
+                                                <aura:set attribute="else">
+                                                    <aura:if isTrue="{! d.FileType == 'ZIP'}">
+                                                        <lightning:icon iconName="doctype:zip" size="medium" />
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{! d.FileType == 'WORD_X' || d.FileType == 'DOCX'}">
+                                                                <lightning:icon iconName="doctype:word" size="medium" />
+                                                                <aura:set attribute="else">
+                                                                    <aura:if isTrue="{! d.FileType == 'EXCEL' || d.FileType == 'EXCEL_X'}">
+                                                                        <lightning:icon iconName="doctype:excel" size="medium" />
+                                                                        <aura:set attribute="else">
+                                                                            <aura:if isTrue="{! d.FileType == 'POWER_POINT_X' || d.FileType == 'POWER_POINT'}">
+                                                                                <lightning:icon iconName="doctype:ppt" size="medium" />
+                                                                                <aura:set attribute="else">
+                                                                                    <aura:if isTrue="{! d.FileType == 'TEXT'}">
+                                                                                        <lightning:icon iconName="doctype:txt" size="medium" />
+                                                                                        <aura:set attribute="else">
+                                                                                            <lightning:icon iconName="doctype:attachment" size="medium" />
+                                                                                        </aura:set>
+                                                                                    </aura:if>
+                                                                                </aura:set>
+                                                                            </aura:if> 
+                                                                        </aura:set>
+                                                                    </aura:if> 
+                                                                </aura:set>
+                                                            </aura:if> 
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </aura:set>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </div> 
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_x-small"><a type="Attachment" onclick="{!c.previewFiles}" data-Id="{!d.Id}">{!d.Title}</a></div>
+                                    <ul class="slds-list_horizontal slds-has-dividers_left">
+                                        <li class="slds-item">
+                                            <div class="font-size"><lightning:formattedDateTime value="{!d.CreatedDate}" /></div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="font-size"><c:FileSizeConverter originalSize="{!d.ContentSize}"/></div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </aura:iteration>
+                        <br/>
+                        <h1><b>All Uploaded Files:</b></h1>
+                        <br/>
+                        <aura:if isTrue="{!empty(v.fileList.allFiles)}">
+                            <h2 class="slds-align_absolute-center"> No File Found</h2>
+                        </aura:if>
+                        <aura:iteration items="{!v.fileList.allFiles}" var="d">
+                            <div class="slds-media all-icons  ">
+                                <div class="slds-media__figure ">
+                                    <aura:if isTrue="{! d.FileType == 'JPEG' || d.FileType == 'JPG' || d.FileType == 'PNG' || d.FileType == 'GIF' || d.FileType == 'BMP'}">
+                                        <lightning:icon iconName="doctype:image" size="medium" />
+                                        <aura:set attribute="else">
+                                            <aura:if isTrue="{! d.FileType == 'PDF'}">
+                                                <lightning:icon iconName="doctype:pdf" size="medium" />
+                                                <aura:set attribute="else">
+                                                    <aura:if isTrue="{! d.FileType == 'ZIP'}">
+                                                        <lightning:icon iconName="doctype:zip" size="medium" />
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{! d.FileType == 'WORD_X' || d.FileType == 'DOCX'}">
+                                                                <lightning:icon iconName="doctype:word" size="medium" />
+                                                                <aura:set attribute="else">
+                                                                    <aura:if isTrue="{! d.FileType == 'EXCEL' || d.FileType == 'EXCEL_X'}">
+                                                                        <lightning:icon iconName="doctype:excel" size="medium" />
+                                                                        <aura:set attribute="else">
+                                                                            <aura:if isTrue="{! d.FileType == 'POWER_POINT_X' || d.FileType == 'POWER_POINT'}">
+                                                                                <lightning:icon iconName="doctype:ppt" size="medium" />
+                                                                                <aura:set attribute="else">
+                                                                                    <aura:if isTrue="{! d.FileType == 'TEXT'}">
+                                                                                        <lightning:icon iconName="doctype:txt" size="medium" />
+                                                                                        <aura:set attribute="else">
+                                                                                            <lightning:icon iconName="doctype:attachment" size="medium" />
+                                                                                        </aura:set>
+                                                                                    </aura:if>
+                                                                                </aura:set>
+                                                                            </aura:if> 
+                                                                        </aura:set>
+                                                                    </aura:if> 
+                                                                </aura:set>
+                                                            </aura:if> 
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </aura:set>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_x-small"><a type="All" onclick="{!c.previewFiles}" data-Id="{!d.Id}">{!d.Title}</a></div>
+                                    <ul class="slds-list_horizontal slds-has-dividers_left">
+                                        <li class="slds-item">
+                                            <div class="font-size"><lightning:formattedDateTime value="{!d.CreatedDate}" /></div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="font-size"><c:FileSizeConverter originalSize="{!d.ContentSize}"/></div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </aura:iteration> 
+                    </lightning:tab>
+                    <lightning:tab label="Images">
+                        <h1><b>Received Images:</b></h1>
+                        <br/>
+                        <aura:if isTrue="{!empty(v.fileList.allEmailImages)}">
+                            <h2 class="slds-align_absolute-center"> No Image Found</h2>
+                        </aura:if>
+                        <aura:iteration items="{!v.fileList.allEmailImages}" var="d">
+                            <div class="slds-media all-icons">
+                                <div class="slds-media__figure">
+                                    <lightning:icon iconName="doctype:image" size="medium" />
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_x-small"><a type="Images" onclick="{!c.previewFiles}" data-Id="{!d.Id}">{!d.Title}</a></div>
+                                    <ul class="slds-list_horizontal slds-has-dividers_left">
+                                        <li class="slds-item">
+                                            <div class="font-size"><lightning:formattedDateTime value="{!d.CreatedDate}" /></div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="font-size"><c:FileSizeConverter originalSize="{!d.ContentSize}"/></div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </aura:iteration>
+                        <br/>
+                        <h1><b>Uploaded Images:</b></h1>
+                        <br/>
+                        <aura:if isTrue="{!empty(v.fileList.allimages)}">
+                            <h2 class="slds-align_absolute-center"> No Image Found</h2>
+                        </aura:if>
+                        <aura:iteration items="{!v.fileList.allimages}" var="d">
+                            <div class="slds-media all-icons">
+                                <div class="slds-media__figure">
+                                    <lightning:icon iconName="doctype:image" size="medium" />
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_x-small"><a type="Images" onclick="{!c.previewFiles}" data-Id="{!d.Id}">{!d.Title}</a></div>
+                                    <ul class="slds-list_horizontal slds-has-dividers_left">
+                                        <li class="slds-item">
+                                            <div class="font-size"><lightning:formattedDateTime value="{!d.CreatedDate}" /></div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="font-size"><c:FileSizeConverter originalSize="{!d.ContentSize}"/></div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </aura:iteration>
+                    </lightning:tab>
+                    <lightning:tab label="Documents">
+                        <h1><b>Received Documents:</b></h1>
+                        <br/>
+                        <aura:if isTrue="{!empty(v.fileList.allEmailDocuments)}">
+                            <h2 class="slds-align_absolute-center"> No Documents Found</h2>
+                        </aura:if>
+                        <aura:iteration items="{!v.fileList.allEmailDocuments}" var="d">
+                            <div class="slds-media all-icons">
+                                <div class="slds-media__figure">
+                                    <aura:if isTrue="{! d.FileType == 'ZIP'}">
+                                        <lightning:icon iconName="doctype:zip" size="medium"/>
+                                        <aura:set attribute="else">
+                                            <aura:if isTrue="{! d.FileType == 'PDF'}"> 
+                                                <lightning:icon iconName="doctype:pdf" size="medium" />
+                                                <aura:set attribute="else">
+                                                    <aura:if isTrue="{! d.FileType == 'WORD_X' || d.FileType == 'DOCX'}">
+                                                        <lightning:icon iconName="doctype:word" size="medium" />
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{! d.FileType == 'EXCEL' || d.FileType == 'EXCEL_X'}">
+                                                                <lightning:icon iconName="doctype:excel" size="medium" />
+                                                                <aura:set attribute="else">
+                                                                    <aura:if isTrue="{! d.FileType == 'POWER_POINT_X' || d.FileType == 'POWER_POINT'}">
+                                                                        <lightning:icon iconName="doctype:ppt" size="medium" />
+                                                                        <aura:set attribute="else">
+                                                                            <aura:if isTrue="{! d.FileType == 'TEXT'}">
+                                                                                <lightning:icon iconName="doctype:txt" size="medium" />
+                                                                                <aura:set attribute="else">
+                                                                                    <lightning:icon iconName="doctype:attachment" size="medium"/>
+                                                                                </aura:set>
+                                                                            </aura:if>
+                                                                        </aura:set>
+                                                                    </aura:if>
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </aura:set>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_x-small"><a type="Files" onclick="{!c.previewFiles}" data-Id="{!d.Id}">{!d.Title}</a></div>
+                                    <ul class="slds-list_horizontal slds-has-dividers_left">
+                                        <li class="slds-item">
+                                            <div class="font-size"><lightning:formattedDateTime value="{!d.CreatedDate}" /></div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="font-size"><c:FileSizeConverter originalSize="{!d.ContentSize}"/></div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </aura:iteration>
+                        <br/>
+                        <h1><b>Uploaded Documents:</b></h1>
+                        <br/>
+                        <aura:if isTrue="{!empty(v.fileList.otherfiles)}">
+                            <h2 class="slds-align_absolute-center"> No Documents Found</h2>
+                        </aura:if>
+                        <aura:iteration items="{!v.fileList.otherfiles}" var="d">
+                            <div class="slds-media all-icons">
+                                <div class="slds-media__figure">
+                                    <aura:if isTrue="{! d.FileType == 'ZIP'}">
+                                        <lightning:icon iconName="doctype:zip" size="medium"/>
+                                        <aura:set attribute="else">
+                                            <aura:if isTrue="{! d.FileType == 'PDF'}"> 
+                                                <lightning:icon iconName="doctype:pdf" size="medium" />
+                                                <aura:set attribute="else">
+                                                    <aura:if isTrue="{! d.FileType == 'WORD_X' || d.FileType == 'DOCX'}">
+                                                        <lightning:icon iconName="doctype:word" size="medium" />
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{! d.FileType == 'EXCEL' || d.FileType == 'EXCEL_X'}">
+                                                                <lightning:icon iconName="doctype:excel" size="medium" />
+                                                                <aura:set attribute="else">
+                                                                    <aura:if isTrue="{! d.FileType == 'POWER_POINT_X' || d.FileType == 'POWER_POINT'}">
+                                                                        <lightning:icon iconName="doctype:ppt" size="medium" />
+                                                                        <aura:set attribute="else">
+                                                                            <aura:if isTrue="{! d.FileType == 'TEXT'}">
+                                                                                <lightning:icon iconName="doctype:txt" size="medium" />
+                                                                                <aura:set attribute="else">
+                                                                                    <lightning:icon iconName="doctype:attachment" size="medium"/>
+                                                                                </aura:set>
+                                                                            </aura:if>
+                                                                        </aura:set>
+                                                                    </aura:if>
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </aura:set>
+                                            </aura:if>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+                                <div class="slds-media__body">
+                                    <div class="slds-text-heading_x-small"><a type="Files" onclick="{!c.previewFiles}" data-Id="{!d.Id}">{!d.Title}</a></div>
+                                    <ul class="slds-list_horizontal slds-has-dividers_left">
+                                        <li class="slds-item">
+                                            <div class="font-size"><lightning:formattedDateTime value="{!d.CreatedDate}" /></div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="font-size"><c:FileSizeConverter originalSize="{!d.ContentSize}"/></div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </aura:iteration>
+                    </lightning:tab>
+                </div>
+            </lightning:tabset>
+        </div>
+        <div class="slds-align_absolute-center">
+            <lightning:fileUpload name="fileUploader" recordId="{!v.recordId}" multiple="true" onuploadfinished="{!c.doInit}"/>
+        </div>
+    </div>
+</aura:component>

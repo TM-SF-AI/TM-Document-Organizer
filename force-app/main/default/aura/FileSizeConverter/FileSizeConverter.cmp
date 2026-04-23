@@ -1,0 +1,6 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+	<aura:attribute name="originalSize" type="String" description="This attribute will store the Content size"/>
+    <aura:attribute name="convertedSize" type="String" description="This attribute will store the converted size of Content"/>
+    <aura:handler name='init' value='{!this}' action='{!c.ConvertSize}' />
+    {!v.convertedSize}
+</aura:component>

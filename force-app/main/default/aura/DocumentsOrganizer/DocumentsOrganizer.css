@@ -1,0 +1,31 @@
+.THIS .search-files {
+   margin-top: 15px;
+    margin-bottom: 15px;
+}
+.THIS .bold-font {
+   font-weight: bold;
+}
+.THIS .hand-cursor {
+   cursor: pointer;
+}
+.THIS .hide-arrow {
+   visibility: hidden;
+}
+.THIS .all-icons {
+    margin:2px;
+    padding:2px;
+}
+.THIS .tabsetdiv {
+    margin-top: 15px;
+}
+.THIS .sort-files {
+    margin-top: 9px;
+    padding-left: 3px;
+}
+.THIS .slds-scrollable{
+    height:15rem;
+    width:24.7rem;
+}
+.THIS .font-size{
+    font-size: 0.7125rem;
+}
